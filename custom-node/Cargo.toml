@@ -1,0 +1,31 @@
+[package]
+name = "custom-node"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+tracing = "0.1"
+eyre = "0.6"
+
+# Reth dependencies (pull from GitHub)
+reth = { git = "https://github.com/paradigmxyz/reth.git"  }
+reth-node-ethereum = { git = "https://github.com/paradigmxyz/reth.git" }
+reth-node-builder = { git = "https://github.com/paradigmxyz/reth.git" }
+reth-ethereum-cli = { git = "https://github.com/paradigmxyz/reth.git" }
+reth-cli-util = { git = "https://github.com/paradigmxyz/reth.git" }
+reth-ethereum = { git = "https://github.com/paradigmxyz/reth.git" , features = ["node", "pool", "cli", "rpc"]}
+dirs = "6.0.0"
+
+reth-tasks = { git = "https://github.com/paradigmxyz/reth", package = "reth-tasks" }
+reth-rpc = { git = "https://github.com/paradigmxyz/reth", package = "reth-rpc" }
+reth-provider = { git = "https://github.com/paradigmxyz/reth", package = "reth-provider" }
+reth-transaction-pool = { git = "https://github.com/paradigmxyz/reth", package = "reth-transaction-pool" }
+reth-network-api = { git = "https://github.com/paradigmxyz/reth", package = "reth-network-api" }
+reth-primitives = { git = "https://github.com/paradigmxyz/reth", package = "reth-primitives" }
+reth-node-core = { git = "https://github.com/paradigmxyz/reth", package = "reth-node-core" }
+futures = "0.3.31"
+alloy-rpc-types-eth = "1.0.23"
+alloy-primitives = "1.3.0"
+alloy-eips = "1.0.23"
+futures-util = "0.3.31"
