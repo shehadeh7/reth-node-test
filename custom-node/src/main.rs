@@ -10,12 +10,14 @@ use reth_ethereum::{
 };
 use futures_util::StreamExt;
 use alloy_eips::BlockNumberOrTag;
-use alloy_primitives::Address;
+use alloy_primitives::{hex_literal, Address, U256, Bytes};
 use alloy_rpc_types_eth::{state::EvmOverrides, TransactionRequest};
-
-
-// use reth_node_ethereum::{EthereumAddOns, EthereumNode};
+use alloy_sol_types::{sol, SolCall};
 use tracing::info;
+
+sol! {
+    function transfer(address to, uint256 amount);
+}
 
 fn main() {
     reth_cli_util::sigsegv_handler::install();
@@ -39,10 +41,47 @@ fn main() {
         node.task_executor.spawn(Box::pin(async move {
             // Waiting for new transactions
             while let Some(event) = pending_transactions.next().await {
-                let tx = event.transaction;
+                let tx = &event.transaction;
                 println!("Transaction received: {tx:?}");
-        }}));
 
+                if let Some(to) = tx.to() {
+                    let call_request =
+                        TransactionRequest::from_recovered_transaction(tx.to_consensus());
+                    let from = call_request.from.expect("From address should exist");
+                    let input = call_request.input.input().clone().unwrap_or_default();
+
+                    if input.is_empty() {
+                        println!(
+                            "Native ETH transfer from {from:?} to {to:?} value: {:?}",
+                            call_request.value
+                        );
+                    } else {
+                        if (input.len() >= 4) {
+                            let selector = &input[0..4];
+
+                            match selector {
+                                b if b == &hex_literal::hex!("a9059cbb") => {
+                                    if let Ok(decoded) = transferCall::abi_decode(&input) {
+                                        println!(
+                                            "ERC20 transfer from {from:?} -> {:?} amount: {:?}",
+                                            decoded.to,
+                                            decoded.amount
+                                        );
+                                    }
+                                }
+
+                                // Add more transfer methods if needed
+
+                                _ => {
+                                    // Default case
+                                }
+                            }
+                        }
+                    }
+
+                    println!("Transaction Request: {call_request:?}");
+                }
+            }}));
         node_exit_future.await
     }) {
         eprintln!("Error: {err:?}");
